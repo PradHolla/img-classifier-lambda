@@ -6,6 +6,7 @@ from PIL import Image
 
 st.set_page_config(page_title="Image Classifier", page_icon=":camera:", layout="wide")
 st.header("Image Classifier")
+st.subheader("Upload an image to classify")
 
 url = "https://3gkl5amlb8.execute-api.us-east-1.amazonaws.com/Prod/classify_digit"
 
@@ -19,7 +20,7 @@ def get_image_buffer(image_file):
     return base64.b64encode(buffered.getvalue()).decode("utf-8")
 
 if uploaded_image is not None:
-    st.image(uploaded_image, width=200)
+    st.sidebar.image(uploaded_image, width=200)
     classify = st.sidebar.button("Classify!")
     
     image_bytes = get_image_buffer(uploaded_image)
@@ -27,4 +28,7 @@ if uploaded_image is not None:
     if classify:
         with st.spinner('Classifying...'):
             response = requests.post(url, json=image_bytes)
-            st.write(response.json())
+            response_json = response.json()
+            prediction, confidence = response_json["predicted_label"], response_json["score"]
+            st.image(uploaded_image, caption=f"{prediction}", width=300)
+            st.write(f'### Classified as: {prediction} with {round(confidence, 2)}% confidence')
